@@ -8,13 +8,22 @@ import { zodResolver } from "@hookform/resolvers/zod";
 const loginSchema = z.object({
   username: z
     .string()
-    .min(1, "username is required")
-    .min(5, "username must be at least 5 characters long"),
+    .min(1, "Username/Email is required")
+    .refine(
+      (val) =>
+        val.includes("@")
+          ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) // email valid
+          : val.length >= 5, // username minimal 5 karakter
+      {
+        message: "Must be a valid email or username (min 5 chars)",
+      }
+    ),
   password: z
     .string()
-    .min(1, "password is required")
-    .min(6, "password must be at least 6 characters long"),
+    .min(1, "Password is required")
+    .min(6, "Password must be at least 6 characters long"),
 });
+
 export default function Login() {
   const navigate = useNavigate();
 
@@ -26,27 +35,28 @@ export default function Login() {
     resolver: zodResolver(loginSchema),
   });
 
+  const onSubmit = (data) => {
+    console.log("Login Data:", data);
+  };
+
   return (
     <section className="h-screen flex flex-col justify-center items-center bg-blue-950">
       <NavBar />
-
       <form
-        action=""
         className="bg-gray-300 p-10 w-[520px] rounded-3xl"
-        onSubmit={handleSubmit()}
+        onSubmit={handleSubmit(onSubmit)}
       >
         <div className="mb-4">
           <label
             htmlFor="username"
             className="block text-sm font-medium text-gray-700"
           >
-            username
+            Username / Email
           </label>
           <input
             type="text"
             {...register("username")}
             id="username"
-            name="username"
             className="mt-1 w-full p-2 border border-gray-600 rounded-md"
           />
           {errors.username && (
@@ -55,6 +65,7 @@ export default function Login() {
             </p>
           )}
         </div>
+
         <div className="mb-4">
           <label
             htmlFor="password"
@@ -66,7 +77,6 @@ export default function Login() {
             type="password"
             {...register("password")}
             id="password"
-            name="password"
             className="mt-1 w-full p-2 border border-gray-600 rounded-md"
           />
           {errors.password && (
@@ -75,6 +85,7 @@ export default function Login() {
             </p>
           )}
         </div>
+
         <button
           type="submit"
           className="w-full p-2 bg-blue-600 text-white rounded-md"
