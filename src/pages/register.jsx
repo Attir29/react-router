@@ -1,152 +1,174 @@
-import React from "react";
-import NavBar from "../components/navBar";
-import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Link } from "react-router-dom";
+
 
 const registerSchema = z
   .object({
     fullname: z
       .string()
-      .min(3, "Fullname must be at least 3 characters long")
-      .max(50, "Fullname must be at most 50 characters long"),
-    email: z.string().email("Invalid email address"),
+      .min(3, "Nama Lengkap minimal 3 karakter")
+      .max(50, "Nama Lengkap maksimal 50 karakter"),
+    email: z
+      .string()
+      .min(1, "Email wajib diisi")
+      .email("Format email tidak valid"),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters long")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
-    passwordConfirmation: z
+      .min(8, "Password minimal 8 karakter")
+      .regex(/^(?=.*[A-Z])(?=.*\d).+$/, "Password harus mengandung huruf besar dan angka"),
+    confirmPassword: z.string().min(1, "Konfirmasi Password wajib diisi"),
+    age: z
       .string()
-      .min(1, "Password confirmation is required"),
-    age: z.preprocess(
-      (val) => (val ? Number(val) : undefined),
-      z
-        .number({ invalid_type_error: "Age must be a number" })
-        .int("Age must be an integer")
-        .min(18, "You must be at least 18 years old")
-        .max(60, "Age must be less than or equal to 60")
-    ),
+      .refine((val) => !isNaN(val), "Umur harus berupa angka")
+      .transform((val) => Number(val))
+      .refine((val) => val >= 18 && val <= 60, {
+        message: "Umur harus antara 18 - 60 tahun",
+      }),
   })
-  .refine((data) => data.password === data.passwordConfirmation, {
-    message: "Passwords do not match",
-    path: ["passwordConfirmation"],
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Password dan Konfirmasi Password tidak sama",
+    path: ["confirmPassword"],
   });
 
-export default function Register() {
-  const navigate = useNavigate();
-
+function Register() {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    mode: "onChange",
+    reValidateMode: "onBlur",
   });
 
   const onSubmit = (data) => {
-    console.log("Register Data:", data);
+    console.log("Register data:", data);
   };
 
   return (
-    <section className="h-screen flex flex-col justify-center items-center bg-blue-950">
-      <NavBar />
-      <form
-        className="bg-gray-300 p-10 w-[520px] rounded-3xl"
-        onSubmit={handleSubmit(onSubmit)}
-      >
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Fullname
-          </label>
-          <input
-            type="text"
-            {...register("fullname")}
-            className="mt-1 block w-full p-2 border border-gray-600 rounded-md"
-          />
-          {errors.fullname && (
-            <p className="text-red-600 text-sm mt-1">
-              {errors.fullname.message}
-            </p>
-          )}
+    <>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-100 via-white to-purple-200">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+            Buat Akun Baru
+          </h2>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {/* Nama Lengkap */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nama Lengkap
+              </label>
+              <input
+                type="text"
+                {...register("fullname")}
+                className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                placeholder="Masukkan nama lengkap"
+              />
+              {errors.fullname && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.fullname.message}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                {...register("email")}
+                className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                placeholder="Masukkan email"
+              />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.email.message}
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                {...register("password")}
+                className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                placeholder="Masukkan password"
+              />
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            {/* Konfirmasi Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Konfirmasi Password
+              </label>
+              <input
+                type="password"
+                {...register("confirmPassword")}
+                className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                placeholder="Ulangi password"
+              />
+              {errors.confirmPassword && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.confirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            {/* Umur */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Umur
+              </label>
+              <input
+                type="number"
+                {...register("age")}
+                className="w-full border border-gray-300 p-2 rounded-lg focus:ring-2 focus:ring-purple-400 focus:outline-none"
+                placeholder="Masukkan umur"
+              />
+              {errors.age && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.age.message}
+                </p>
+              )}
+            </div>
+
+            {/* Tombol Register */}
+            <button
+              type="submit"
+              className="w-full bg-purple-500 hover:bg-purple-600 text-white font-medium py-2 px-4 rounded-lg transition"
+            >
+              Register
+            </button>
+          </form>
+
+          {/* Link ke Login */}
+          <p className="mt-6 text-center text-gray-600 text-sm">
+            Sudah punya akun?{" "}
+            <Link
+              to="/"
+              className="text-purple-500 hover:text-purple-600 font-medium"
+            >
+              Login di sini
+            </Link>
+          </p>
         </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Email
-          </label>
-          <input
-            type="email"
-            {...register("email")}
-            className="mt-1 block w-full p-2 border border-gray-600 rounded-md"
-          />
-          {errors.email && (
-            <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Password
-          </label>
-          <input
-            type="password"
-            {...register("password")}
-            className="mt-1 block w-full p-2 border border-gray-600 rounded-md"
-          />
-          {errors.password && (
-            <p className="text-red-600 text-sm mt-1">
-              {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            {...register("passwordConfirmation")}
-            className="mt-1 block w-full p-2 border border-gray-600 rounded-md"
-          />
-          {errors.passwordConfirmation && (
-            <p className="text-red-600 text-sm mt-1">
-              {errors.passwordConfirmation.message}
-            </p>
-          )}
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Age</label>
-          <input
-            type="number"
-            {...register("age")}
-            className="mt-1 block w-full p-2 border border-gray-600 rounded-md"
-          />
-          {errors.age && (
-            <p className="text-red-600 text-sm mt-1">{errors.age.message}</p>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          className="w-full p-2 bg-blue-600 text-white rounded-md"
-        >
-          Register
-        </button>
-
-        <p className="mt-4 text-sm">
-          Already have an account?{" "}
-          <span
-            className="text-blue-600 cursor-pointer"
-            onClick={() => navigate("/")}
-          >
-            Login here
-          </span>
-        </p>
-      </form>
-    </section>
+      </div>
+    </>
   );
 }
+
+export default Register;

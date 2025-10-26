@@ -2,8 +2,11 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import Register from "../pages/register";
 import Login from "../pages/login";
-import Dashboard from "../pages/dashboard";
+import DashboardUser from "@/pages/dashboard/dashboardUser/dashboardUser";
+import DashboardProduct from "@/pages/dashboard/dashboardProduct";
+import { columns } from "@/pages/dashboard/dashboardUser/columsUser";
 import NotFound from "../pages/404notfound";
+import AddUser from "@/pages/dashboard/dashboardUser/addUser";
 
 export default function Router() {
   const router = createBrowserRouter([
@@ -21,7 +24,19 @@ export default function Router() {
     },
     {
       path: "/dashboard",
-      element: <Dashboard />,
+      element: <DashboardProduct />,
+    },
+    {
+      path: "/dashboard/user",
+      element: <DashboardUser />,
+    },
+    {
+      path: "/dashboard/product",
+      element: <DashboardProduct />,
+    },
+    {
+      path: "/dashboard/user/add",
+      element: <AddUser />,
     },
   ]);
 
